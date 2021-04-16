@@ -148,6 +148,33 @@ class MorganFingerprintFeaturizer(SingleLigandFeaturizer):
         return np.asarray(fp, dtype="uint8")
 
 
+class MACCSKeysFeaturizer(SingleLigandFeaturizer):
+
+    """
+    Given a ``System`` containing one ``OpenForceFieldLikeLigand``
+    component, convert it to RDKit molecule and generate
+    the MACCS keys bitvectors.
+    """
+
+    _COMPATIBLE_LIGAND_TYPES = (OpenForceFieldLigand, OpenForceFieldLikeLigand)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _featurize(self, system: System) -> np.ndarray:
+        ligand = self._find_ligand(system).to_rdkit()
+        return self._featurize_ligand(ligand)
+
+    @lru_cache(maxsize=1000)
+    def _featurize_ligand(self, ligand: rdkit.Chem.Mol) -> np.ndarray:
+        from rdkit.Chem.MACCSkeys import GenMACCSKeys
+
+        # FIXME: Check whether OFF uses canonical smiles internally, or not
+        # otherwise, we should force that behaviour ourselves!
+        fp = GenMACCSKeys(ligand)
+        return np.asarray(fp, dtype="uint8")
+
+
 class OneHotSMILESFeaturizer(BaseOneHotEncodingFeaturizer, SingleLigandFeaturizer):
 
     """

@@ -9,6 +9,7 @@ from kinoml.core.ligands import OpenForceFieldLigand, RDKitLigand, SmilesLigand
 from kinoml.features.ligand import (
     SingleLigandFeaturizer,
     MorganFingerprintFeaturizer,
+    MACCSKeysFeaturizer,
     OneHotSMILESFeaturizer,
     GraphLigandFeaturizer,
     SmilesToLigandFeaturizer,
@@ -77,6 +78,33 @@ def test_ligand_MorganFingerprintFeaturizer_RDKit(smiles, solution):
     ligand = RDKitLigand.from_smiles(smiles)
     system = System([ligand])
     featurizer = MorganFingerprintFeaturizer(radius=2, nbits=512)
+    featurizer.featurize(system)
+    fingerprint = system.featurizations[featurizer.name]
+    solution_array = np.array(list(map(int, solution)), dtype="uint8")
+    assert (fingerprint == solution_array).all()
+
+
+@pytest.mark.parametrize(
+    "smiles, solution",
+    [
+        (
+            "C",
+            "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000",
+        ),
+        (
+            "B",
+            "00000000000000000010000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        ),
+    ],
+)
+def test_ligand_MACCSKeysFeaturizer_RDKit(smiles, solution):
+    """
+    OFFTK _will_ add hydrogens to all ingested SMILES, and export a canonicalized output,
+    so the representation you get might not be the one you expect if you compute it directly.
+    """
+    ligand = RDKitLigand.from_smiles(smiles)
+    system = System([ligand])
+    featurizer = MACCSKeysFeaturizer()
     featurizer.featurize(system)
     fingerprint = system.featurizations[featurizer.name]
     solution_array = np.array(list(map(int, solution)), dtype="uint8")
