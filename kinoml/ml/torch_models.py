@@ -54,7 +54,7 @@ class NeuralNetworkRegressionAdvanced(_BaseModule):
     ----------
     input_shape : int
         Dimension of the input vector.
-    hidden_shape : list, default=(100, 50)
+    hidden_shape_1 : int, default=100
         Number of units in the hidden layer.
     output_shape : int, default=1
         Size of the last unit, representing delta_g_over_kt in our setting.
@@ -62,19 +62,20 @@ class NeuralNetworkRegressionAdvanced(_BaseModule):
         The activation function used in the hidden (only!) layer of the network.
     """
 
-    def __init__(self, input_shape, hidden_shape=(100, 50), output_shape=1, activation=F.sigmoid):
+    def __init__(self, input_shape, hidden_shape_1=100, output_shape=1, activation=F.sigmoid):
         super().__init__()
 
         self._activation = activation
         self.input_shape = input_shape
-        self.hidden_shape = hidden_shape
+        self.hidden_shape_1 = hidden_shape_1
+        self.hidden_shape_2 = round(hidden_shape_1, 2)
         self.output_shape = output_shape
 
         # Fully connected layers
-        self.fully_connected_1 = nn.Linear(self.input_shape, self.hidden_shape[0])
-        self.fully_connected_2 = nn.Linear(self.hidden_shape[0], self.hidden_shape[1])
+        self.fully_connected_1 = nn.Linear(self.input_shape, self.hidden_shape_1)
+        self.fully_connected_2 = nn.Linear(self.hidden_shape_1, self.hidden_shape_2)
         # Output
-        self.fully_connected_out = nn.Linear(self.hidden_shape[1], self.output_shape)
+        self.fully_connected_out = nn.Linear(self.hidden_shape_2, self.output_shape)
 
     def forward(self, x):
         """
